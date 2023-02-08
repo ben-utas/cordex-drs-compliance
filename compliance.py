@@ -5,6 +5,14 @@ from nco import Nco # Provides functions for the manipulation of general NetCDF 
 from nco.custom import Atted
 from pathlib import Path # Provides functions for manipulating files.
 
+output_variables = [
+    "epanave", "hurs", "pr", "ps", "rh", "rnetave", "soilt", "tas"
+]
+
+invariant_variables = [
+    "grid", "he", "orog", "sftlf", "sigmu", "vegt"
+]
+
 cdo = Cdo()
 nco = Nco()
 
