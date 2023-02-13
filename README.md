@@ -9,10 +9,10 @@ In its current state these scripts are built for a specific case of files retrie
 This script makes calls to shell through bash, primarily to call upon the NCO package, which is built for linux. As such, this script is best suited towards linux systems.
 
 ### Python Packages
-    - [cdo](https://pypi.org/project/cdo/)
-    - [numpy](https://pypi.org/project/numpy/)
+- [cdo](https://pypi.org/project/cdo/)
+- [numpy](https://pypi.org/project/numpy/)
 
 ### Linux Packages
-    - Python 3.6 or above
-    - [cdo](https://packages.debian.org/sid/cdo)
-    - [nco](https://nco.sourceforge.net/nco.html)
+- Python 3.6 or above
+- [cdo](https://packages.debian.org/sid/cdo)
+- [nco](https://nco.sourceforge.net/nco.html)
