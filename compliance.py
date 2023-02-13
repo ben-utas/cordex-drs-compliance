@@ -18,7 +18,7 @@ parser.add_argument(
     default=Path('.')
 )
 
-target = parser.parse_args().destination
+target = Path(parser.parse_args().destination)
 
 if not target.exists() and not target.is_dir():
     print("Destination directory does not exist.")
@@ -66,15 +66,34 @@ def relocate(nc_file: Path):
     """
     nc_headers = subprocess.run("ncdump -h " + nc_file.name, stdout=subprocess.PIPE, shell=True)
     nc_headers = nc_headers.stdout.decode("utf-8").split('\n')
-    variable_name = nc_file.name.split("_")[0]
+    
+    allocated = {}
+    allocated["variable_name"] = cdo.showname(input=nc_file.name)[0]
+    if allocated["variable_name"] in output_variables:
+        dates = cdo.showdate(input=nc_file.name)[0].split('  ')
+        allocated["start_date"] = dates[0].replace('-', '')
+        allocated["end_date"] = dates[-1].replace('-', '')
+    allocated["product"] = "output"
+    allocated["project_id"] = "CORDEX"
+    # Dictionary with variable names yet to be allocated.
+    unallocated = dict.fromkeys([
+        "domain", "driving_model_id", "driving_experiment_name", 
+        "driving_model_ensemble_member", "model_id", "rcm_version_id", "frequency", "institude_id"
+    ])
+    
     # Find the string in nc_headers that contains each variable.
     for s in nc_headers:
-        if "product" in s:
-            product = s.split("\"")[1]
-        if "domain" in s:
-            domain = s.split("\"")[1]
-        if "institution" in s:
-            institution = s.split("\"")[1]
+        key = ""
+        for k in unallocated:
+            if k in s:
+                key = k
+                break
+        if key == "":
+            continue
+        unallocated.pop(key)
+        allocated[key] = s.split("\"")[1]
+    
+    
 
 for nc_file in nc_files:
     # Find files with name containing the date range 2000-2009, and split this file into a historical and projected file with historical file having metadata updated.
@@ -85,8 +104,8 @@ for nc_file in nc_files:
         cdo.selyear("2006/2009", input=nc_file.name, output=nc_experiment)
         subprocess.run(opt_historical + nc_historical, shell=True)
         subprocess.run(opt_experimental + nc_experiment, shell=True)
-        relocate(path.glob(nc_historical)[0])
-        relocate(path.glob(nc_experiment)[0])
+        relocate(list(path.glob(nc_historical))[0])
+        relocate(list(path.glob(nc_experiment))[0])
     # Fix metadata for remaining files.
     if int(nc_file.name.split(".")[1].split("-")[0]) <= 2005:
         print(nc_file.name)
