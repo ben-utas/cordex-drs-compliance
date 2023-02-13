@@ -32,9 +32,9 @@ invariant_variables = [
 
 cdo = Cdo()
 
-# Search for all files with a .nc extension in the current directory.
+# Search for all files with a .nc extension in the current and sub directories.
 path = Path('.')
-nc_files = list(path.glob('*.nc'))
+nc_files = list(path.glob('**/*.nc'))
 
 # Command for renaming historical based output variable files.
 opt_historical = (
