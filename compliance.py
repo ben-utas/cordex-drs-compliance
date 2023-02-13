@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse # Provides functions for parsing command line arguments.
+import shutil # Provides functions for copying files.
 import subprocess # Provides functions for running shell commands.
 from pathlib import Path # Provides functions for manipulating files.
 
@@ -24,12 +25,9 @@ if not target.exists() and not target.is_dir():
     print("Destination directory does not exist.")
     exit()
 
-output_variables = [
-    "epanave", "hurs", "pr", "ps", "rh", "rnetave", "soilt", "tas"
-]
-
 invariant_variables = [
-    "grid", "he", "orog", "sftlf", "sigmu", "vegt"
+    "grid", "he", "orog", "sftlf", "sigmu", "vegt", "areacella", "sftgif", 
+    "mrsofc", "rootd"
 ]
 
 cdo = Cdo()
@@ -58,18 +56,23 @@ opt_experimental = (
     "-a frequency,global,o,c,day "
 )
 
+
 def relocate(nc_file: Path):
     """Rename and relocate files according to DRS standard.
 
     Args:
         nc_file (Path): Path to NetCDF file to be renamed and relocated.
     """
-    nc_headers = subprocess.run("ncdump -h " + nc_file.name, stdout=subprocess.PIPE, shell=True)
+    nc_headers = subprocess.run(
+        "ncdump -h " + nc_file.name,
+        stdout=subprocess.PIPE,
+        shell=True
+    )
     nc_headers = nc_headers.stdout.decode("utf-8").split('\n')
     
     allocated = {}
     allocated["variable_name"] = cdo.showname(input=nc_file.name)[0]
-    if allocated["variable_name"] in output_variables:
+    if allocated["variable_name"] not in invariant_variables:
         dates = cdo.showdate(input=nc_file.name)[0].split('  ')
         allocated["start_date"] = dates[0].replace('-', '')
         allocated["end_date"] = dates[-1].replace('-', '')
@@ -78,7 +81,8 @@ def relocate(nc_file: Path):
     # Dictionary with variable names yet to be allocated.
     unallocated = dict.fromkeys([
         "domain", "driving_model_id", "driving_experiment_name", 
-        "driving_model_ensemble_member", "model_id", "rcm_version_id", "frequency", "institude_id"
+        "driving_model_ensemble_member", "model_id", "rcm_version_id", 
+        "frequency", "institute_id"
     ])
     
     # Find the string in nc_headers that contains each variable.
@@ -93,6 +97,24 @@ def relocate(nc_file: Path):
         unallocated.pop(key)
         allocated[key] = s.split("\"")[1]
     
+    # Make sure all keys have been allocated.
+    if len(unallocated) != 0:
+        print("Not all CORDEX variables are present for " + nc_file.name)
+        exit()
+    
+    # Build the new file name and path.
+    cordex_path = target / allocated["project_id"] / allocated["domain"] / allocated["institute_id"] / allocated["driving_model_id"] / allocated["driving_experiment_name"] / allocated["driving_model_ensemble_member"] / allocated["model_id"] / allocated["rcm_version_id"] / allocated["frequency"] / allocated["variable_name"] 
+    
+    cordex_name = "_".join([allocated["variable_name"], allocated["domain"], allocated["driving_model_id"], allocated["driving_experiment_name"], allocated["driving_model_ensemble_member"], allocated["model_id"], allocated["rcm_version_id"], allocated["frequency"]])
+    
+    if allocated["variable_name"] not in invariant_variables:
+        cordex_name = cordex_name + "_" + "-".join([allocated["start_date"], allocated["end_date"]])
+    cordex_name = cordex_name + ".nc"
+    
+    new_home = Path.joinpath(cordex_path, cordex_name)
+    if not Path.exists(cordex_path):
+        Path.mkdir(cordex_path, parents=True)
+    shutil.copy(nc_file, new_home)
     
 
 for nc_file in nc_files:
@@ -104,15 +126,17 @@ for nc_file in nc_files:
         cdo.selyear("2006/2009", input=nc_file.name, output=nc_experiment)
         subprocess.run(opt_historical + nc_historical, shell=True)
         subprocess.run(opt_experimental + nc_experiment, shell=True)
-        relocate(list(path.glob(nc_historical))[0])
-        relocate(list(path.glob(nc_experiment))[0])
+        nc_historical = list(path.glob(nc_historical))[0]
+        nc_experiment = list(path.glob(nc_experiment))[0]
+        relocate(nc_historical)
+        relocate(nc_experiment)
+        nc_historical.unlink()
+        nc_experiment.unlink()
     # Fix metadata for remaining files.
-    if int(nc_file.name.split(".")[1].split("-")[0]) <= 2005:
-        print(nc_file.name)
+    elif int(nc_file.name.split(".")[1].split("-")[0]) <= 2005:
         subprocess.run(opt_historical + nc_file.name, shell=True)
         relocate(nc_file)
-    if int(nc_file.name.split(".")[1].split("-")[0]) >= 2006:
-        print(nc_file.name)
+    elif int(nc_file.name.split(".")[1].split("-")[0]) >= 2006:
         subprocess.run(opt_experimental + nc_file.name, shell=True)
         relocate(nc_file)
     
