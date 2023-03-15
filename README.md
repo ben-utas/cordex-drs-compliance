@@ -6,11 +6,7 @@ In its current state these scripts are built for a specific case of files retrie
 
 ## Requirements
 
-This script makes calls to shell through bash, primarily to call upon the NCO package, which is built for linux. As such, this script is best suited towards linux systems.
-
-### Python Packages
-- [cdo](https://pypi.org/project/cdo/)
-- [numpy](https://pypi.org/project/numpy/)
+This script makes calls to shell through bash, primarily to call upon the netCDF operators (NCO), which is built for linux. As such, this script is best suited towards linux systems.
 
 ### Linux Packages
 - Python 3.6 or above
