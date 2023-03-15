@@ -142,7 +142,15 @@ def relocate(nc_file: Path):
     shutil.copy(nc_file, new_home)
 
 
+historical_dates = ["1950", "1960", "1970", "1980", "1990", "2000-2005"]
+experimental_dates = [
+    "2006-2009", "2010", "2020", "2030", "2040", "2050", "2060", "2070",
+    "2080", "2090"
+]
+
 for nc_file in nc_files:
+    digits = [int(s)
+              for s in nc_file.name.split('.').split('-') if s.isdigit()]
     # Find files with name containing the date range 2000-2009, and split this file into a historical and projected file with historical file having metadata updated.
     if "2000-2009" in nc_file.name:
         nc_historical = nc_file.name.split(".")[0] + ".2000-2005.nc"
@@ -164,9 +172,11 @@ for nc_file in nc_files:
         nc_historical.unlink()
         nc_experiment.unlink()
     # Fix metadata for remaining files.
-    elif "2000-2005" in nc_file.name:
+    elif any(date in nc_file.name for date in historical_dates):
         subprocess.run(opt_historical + nc_file.name, shell=True)
         relocate(nc_file)
-    elif "2006-2009" in nc_file.name:
+    elif any(date in nc_file.name for date in experimental_dates):
         subprocess.run(opt_experimental + nc_file.name, shell=True)
+        relocate(nc_file)
+    else:
         relocate(nc_file)
