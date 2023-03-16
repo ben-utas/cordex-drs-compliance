@@ -75,7 +75,6 @@ def relocate(nc_file: Path):
         showname.stdout.decode("utf-8") \
         .split('\n')[0].strip()
 
-    print(allocated["variable_name"])
     if allocated["variable_name"] not in invariant_variables:
         showdate = subprocess.run(
             "cdo -s showdate " + str(nc_file),
@@ -85,9 +84,7 @@ def relocate(nc_file: Path):
         dates = showdate.stdout.decode("utf-8").split("  ")
         dates = [d for d in dates if d]
         allocated["start_date"] = dates[0].replace('-', '').strip()
-        print(allocated["start_date"])
         allocated["end_date"] = dates[-1].replace('-', '').strip()
-        print(allocated["end_date"])
     allocated["product"] = "output"
     allocated["project_id"] = "CORDEX"
     # Dictionary with variable names yet to be allocated.
@@ -112,7 +109,7 @@ def relocate(nc_file: Path):
     # Make sure all keys have been allocated.
     if len(unallocated) != 0:
         print("Not all CORDEX variables are present for " + nc_file.name)
-        exit()
+        return
 
     # Build the new file name and path.
     cordex_path = target / allocated["project_id"] / allocated["domain"] / \
@@ -150,6 +147,7 @@ experimental_dates = [
 
 for nc_file in nc_files:
     # Find files with name containing the date range 2000-2009, and split this file into a historical and projected file with historical file having metadata updated.
+    print(nc_file.name)
     if "2000-2009" in nc_file.name:
         nc_historical = nc_file.name.split(".")[0] + ".2000-2005.nc"
         nc_experiment = nc_file.name.split(".")[0] + ".2006-2009.nc"
@@ -161,14 +159,19 @@ for nc_file in nc_files:
             "cdo -s selyear,2006/2009 "
             + str(nc_file) + " " + nc_experiment, shell=True
         )
-        nc_historical = list(path.glob(nc_historical))[0]
-        nc_experiment = list(path.glob(nc_experiment))[0]
-        subprocess.run(opt_historical + str(nc_historical), shell=True)
-        subprocess.run(opt_experimental + str(nc_experiment), shell=True)
-        relocate(nc_historical)
-        relocate(nc_experiment)
-        nc_historical.unlink()
-        nc_experiment.unlink()
+        try:
+            nc_historical = list(path.glob(nc_historical))[0]
+            nc_experiment = list(path.glob(nc_experiment))[0]
+        except:
+            print(nc_file.name +
+                  " failed to split into experimental and historical files.")
+        else:
+            subprocess.run(opt_historical + str(nc_historical), shell=True)
+            subprocess.run(opt_experimental + str(nc_experiment), shell=True)
+            relocate(nc_historical)
+            relocate(nc_experiment)
+            nc_historical.unlink()
+            nc_experiment.unlink()
     # Fix metadata for remaining files.
     elif any(date in nc_file.name for date in historical_dates):
         subprocess.run(opt_historical + str(nc_file), shell=True)
