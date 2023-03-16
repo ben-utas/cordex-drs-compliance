@@ -60,7 +60,7 @@ def relocate(nc_file: Path):
         nc_file (Path): Path to NetCDF file to be renamed and relocated.
     """
     nc_headers = subprocess.run(
-        "ncdump -h " + nc_file,
+        "ncdump -h " + str(nc_file),
         stdout=subprocess.PIPE,
         shell=True
     )
@@ -68,7 +68,7 @@ def relocate(nc_file: Path):
 
     allocated = {}
     showname = subprocess.run(
-        "cdo -s showname " + nc_file, stdout=subprocess.PIPE, shell=True
+        "cdo -s showname " + str(nc_file), stdout=subprocess.PIPE, shell=True
     )
 
     allocated["variable_name"] = \
@@ -78,7 +78,7 @@ def relocate(nc_file: Path):
     print(allocated["variable_name"])
     if allocated["variable_name"] not in invariant_variables:
         showdate = subprocess.run(
-            "cdo -s showdate " + nc_file,
+            "cdo -s showdate " + str(nc_file),
             stdout=subprocess.PIPE,
             shell=True
         )
@@ -155,26 +155,26 @@ for nc_file in nc_files:
         nc_experiment = nc_file.name.split(".")[0] + ".2006-2009.nc"
         subprocess.run(
             "cdo -s selyear,2000/2005 "
-            + nc_file + " " + nc_historical, shell=True
+            + str(nc_file) + " " + nc_historical, shell=True
         )
         subprocess.run(
             "cdo -s selyear,2006/2009 "
-            + nc_file + " " + nc_experiment, shell=True
+            + str(nc_file) + " " + nc_experiment, shell=True
         )
         nc_historical = list(path.glob(nc_historical))[0]
         nc_experiment = list(path.glob(nc_experiment))[0]
-        subprocess.run(opt_historical + nc_historical, shell=True)
-        subprocess.run(opt_experimental + nc_experiment, shell=True)
+        subprocess.run(opt_historical + str(nc_historical), shell=True)
+        subprocess.run(opt_experimental + str(nc_experiment), shell=True)
         relocate(nc_historical)
         relocate(nc_experiment)
         nc_historical.unlink()
         nc_experiment.unlink()
     # Fix metadata for remaining files.
     elif any(date in nc_file.name for date in historical_dates):
-        subprocess.run(opt_historical + nc_file, shell=True)
+        subprocess.run(opt_historical + str(nc_file), shell=True)
         relocate(nc_file)
     elif any(date in nc_file.name for date in experimental_dates):
-        subprocess.run(opt_experimental + nc_file, shell=True)
+        subprocess.run(opt_experimental + str(nc_file), shell=True)
         relocate(nc_file)
     else:
         relocate(nc_file)
