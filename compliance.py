@@ -149,8 +149,6 @@ experimental_dates = [
 ]
 
 for nc_file in nc_files:
-    digits = [int(s)
-              for s in nc_file.name.split('.').split('-') if s.isdigit()]
     # Find files with name containing the date range 2000-2009, and split this file into a historical and projected file with historical file having metadata updated.
     if "2000-2009" in nc_file.name:
         nc_historical = nc_file.name.split(".")[0] + ".2000-2005.nc"
