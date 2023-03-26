@@ -149,12 +149,13 @@ def relocate(nc_file: Path):
 
 def fix_global_variables(nc_file: Path):
     nc_fix = nc_file.name + "_fixed.nc"
-    nc_fix = list(path.glob(nc_fix))[0]
 
     subprocess.run(
         "ncatted -O -h -a ,global,d,, " +
-        str(nc_file) + " " + str(nc_fix), shell=True
+        str(nc_file) + " " + nc_fix, shell=True
     )
+
+    nc_fix = list(path.glob(nc_fix))[0]
 
     showname = subprocess.run(
         "cdo -s showname " + str(nc_file), stdout=subprocess.PIPE, shell=True
