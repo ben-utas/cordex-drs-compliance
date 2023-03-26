@@ -152,7 +152,7 @@ def fix_global_variables(nc_file: Path):
 
     subprocess.run(
         "ncatted -O -h -a ,global,d,, " +
-        str(nc_file) + " " + nc_fix, shell=True
+        str(nc_file) + " " + str(path) + "/" + nc_fix, shell=True
     )
 
     nc_fix = list(path.glob(nc_fix))[0]
@@ -248,11 +248,11 @@ for nc_file in nc_files:
         nc_experiment = nc_file.name.split(".")[0] + ".2006-2009.nc"
         subprocess.run(
             "cdo -s selyear,2000/2005 "
-            + str(nc_file) + " " + nc_historical, shell=True
+            + str(nc_file) + " " + str(path) + "/" + nc_historical, shell=True
         )
         subprocess.run(
             "cdo -s selyear,2006/2009 "
-            + str(nc_file) + " " + nc_experiment, shell=True
+            + str(nc_file) + " " + str(path) + "/" + nc_experiment, shell=True
         )
         try:
             nc_historical = list(path.glob(nc_historical))[0]
