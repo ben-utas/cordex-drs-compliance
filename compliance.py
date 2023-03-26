@@ -11,15 +11,22 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument(
+    '-t', '--target',
+    help='.',
+    type=Path,
+    default=Path('.')
+)
+
+parser.add_argument(
     '-d', '--destination',
     help='Destination directory for output files.',
     type=Path,
     default=Path('.')
 )
 
-target = Path(parser.parse_args().destination)
+destination = Path(parser.parse_args().destination)
 
-if not target.exists() and not target.is_dir():
+if not destination.exists() and not destination.is_dir():
     print("Destination directory does not exist.")
     exit()
 
@@ -29,7 +36,7 @@ invariant_variables = [
 ]
 
 # Search for all files with a .nc extension in the current and sub directories.
-path = Path('.')
+path = Path(parser.parse_args().target)
 nc_files = list(path.glob('**/*.nc'))
 
 # Command for renaming historical based output variable files.
@@ -109,10 +116,11 @@ def relocate(nc_file: Path):
     # Make sure all keys have been allocated.
     if len(unallocated) != 0:
         print("Not all CORDEX variables are present for " + nc_file.name)
+        fix_global_variables(nc_file)
         return
 
     # Build the new file name and path.
-    cordex_path = target / allocated["project_id"] / allocated["domain"] / \
+    cordex_path = destination / allocated["project_id"] / allocated["domain"] / \
         allocated["institute_id"] / allocated["driving_model_id"] / \
         allocated["driving_experiment_name"] / \
         allocated["driving_model_ensemble_member"] / allocated["model_id"] / \
@@ -137,6 +145,92 @@ def relocate(nc_file: Path):
     if not Path.exists(cordex_path):
         Path.mkdir(cordex_path, parents=True)
     shutil.copy(nc_file, new_home)
+
+
+def fix_global_variables(nc_file: Path):
+    nc_fix = nc_file.name + "_fixed.nc"
+    nc_fix = list(path.glob(nc_fix))[0]
+
+    subprocess.run(
+        "ncatted -O -h -a ,global,d,, " +
+        str(nc_file) + " " + str(nc_fix), shell=True
+    )
+
+    showname = subprocess.run(
+        "cdo -s showname " + str(nc_file), stdout=subprocess.PIPE, shell=True
+    )
+
+    variable_name = showname.stdout.decode("utf-8").split('\n')[0].strip()
+
+    if variable_name in invariant_variables:
+        freq = "fx"
+    else:
+        freq = "day"
+        showdate = subprocess.run(
+            "cdo -s showdate " + str(nc_file),
+            stdout=subprocess.PIPE,
+            shell=True
+        )
+        dates = showdate.stdout.decode("utf-8").split("  ")
+        dates = [d for d in dates if d]
+        start_date = dates[0].replace('-', '').strip()
+        end_date = dates[-1].replace('-', '').strip()
+
+    opt_fix = (
+        "ncatted -O -h " +
+        "-a institute_id,global,o,c,CSIRO " +
+        "-a institution,global,o,c,'CSIRO Australia' " +
+        "-a model_id,global,o,c,CSIRO-CCAM-r3355 " +
+        "-a rcm_version_id,global,o,c,v1 " +
+        "-a experiment_id,global,o,c,rcp85 " +
+        "-a experiment,global,o,c,'Climate change run using CNRM-CERFACS-CNRM-CM5 rcp85 r1i1p1' " +
+        "-a driving_model_id,global,o,c,CNRM-CERFACS-CNRM-CM5 " +
+        "-a driving_model_ensemble_member,global,o,c,r1i1p1 " +
+        "-a driving_experiment,global,o,c,'CNRM-CERFACS-CNRM-CM5; rcp85; r1i1p1' " +
+        "-a driving_experiment_name,global,o,c,rcp85 " +
+        "-a domain,global,o,c,GLB-50i " +
+        "-a comment,global,o,c,GLB-50i " +
+        "-a frequency,global,o,c," + freq + " " +
+        "-a product,global,o,c,output " +
+        "-a project_id,global,o,c,WINE " +
+        "-a contact,global,o,c,ccam@csiro.au " +
+        "-a references,global,o,c,https://confluence.csiro.au/display/CCAM " +
+        "-a source,global,o,c,'CSIRO Conformal-Cubic Atmospheric Model (CCAM) version r3355. Input file: ccam_wine_cnrm-cm5_50km.202001 Processed by pcc2hist SVN-r3472' " +
+        "-a il,global,o,c,192 " +
+        "-a kl,global,o,c,35 " +
+        "-a schmidt,global,o,c,1. " +
+        "-a rlon,global,o,c,0. " +
+        "-a rlat,global,o,c,0. " +
+        "-a creation_date,global,o,c,2018-08-16T19:13:22UTC " +
+        "-a produced_date,global,o,c,2017-07-31 "
+    )
+
+    # Build the new file name and path.
+    cordex_path = destination / "WINE" / "GLB-50i" / "CSIRO" / \
+        "CNRM-CERFACS-CNRM-CM5" / "rcp85" / "r1i1p1" / \
+        "CSIRO-CCAM-r3355" / "v1" / "fx" / variable_name
+
+    cordex_name = "_".join([
+        variable_name, "GLB-50i", "CNRM-CERFACS-CNRM-CM5", "rcp85",
+        "r1i1p1", "CSIRO-CCAM-r3355", "v1", freq
+    ])
+
+    if variable_name not in invariant_variables:
+        cordex_name = \
+            cordex_name + "_" \
+            + "-".join([start_date, end_date])
+
+    cordex_name = cordex_name + ".nc"
+
+    new_home = Path.joinpath(cordex_path, cordex_name)
+    if not Path.exists(cordex_path):
+        Path.mkdir(cordex_path, parents=True)
+    shutil.copy(nc_file, new_home)
+
+    subprocess.run(opt_fix + str(nc_fix), shell=True)
+    nc_fix.unlink()
+
+    return
 
 
 historical_dates = ["1950", "1960", "1970", "1980", "1990", "2000-2005"]
