@@ -120,9 +120,9 @@ def relocate(nc_file: Path):
         return
 
     # Build the new file name and path.
-    cordex_path = destination / allocated["project_id"] / allocated["domain"] / \
-        allocated["institute_id"] / allocated["driving_model_id"] / \
-        allocated["driving_experiment_name"] / \
+    cordex_path = destination / allocated["project_id"] / \
+        allocated["domain"] / allocated["institute_id"] / \
+        allocated["driving_model_id"] / allocated["driving_experiment_name"] / \
         allocated["driving_model_ensemble_member"] / allocated["model_id"] / \
         allocated["rcm_version_id"] / allocated["frequency"] / \
         allocated["variable_name"]
