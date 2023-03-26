@@ -193,7 +193,7 @@ def fix_global_variables(nc_file: Path):
         "-a comment,global,o,c,GLB-50i " +
         "-a frequency,global,o,c," + freq + " " +
         "-a product,global,o,c,output " +
-        "-a project_id,global,o,c,WINE " +
+        "-a project_id,global,o,c,CORDEX " +
         "-a contact,global,o,c,ccam@csiro.au " +
         "-a references,global,o,c,https://confluence.csiro.au/display/CCAM " +
         "-a source,global,o,c,'CSIRO Conformal-Cubic Atmospheric Model (CCAM) version r3355. Input file: ccam_wine_cnrm-cm5_50km.202001 Processed by pcc2hist SVN-r3472' " +
@@ -205,9 +205,11 @@ def fix_global_variables(nc_file: Path):
         "-a creation_date,global,o,c,2018-08-16T19:13:22UTC " +
         "-a produced_date,global,o,c,2017-07-31 "
     )
+    
+    subprocess.run(opt_fix + str(nc_fix), shell=True)
 
     # Build the new file name and path.
-    cordex_path = destination / "WINE" / "GLB-50i" / "CSIRO" / \
+    cordex_path = destination / "CORDEX" / "GLB-50i" / "CSIRO" / \
         "CNRM-CERFACS-CNRM-CM5" / "rcp85" / "r1i1p1" / \
         "CSIRO-CCAM-r3355" / "v1" / "fx" / variable_name
 
@@ -226,9 +228,8 @@ def fix_global_variables(nc_file: Path):
     new_home = Path.joinpath(cordex_path, cordex_name)
     if not Path.exists(cordex_path):
         Path.mkdir(cordex_path, parents=True)
-    shutil.copy(nc_file, new_home)
+    shutil.copy(nc_fix, new_home)
 
-    subprocess.run(opt_fix + str(nc_fix), shell=True)
     nc_fix.unlink()
 
     return
