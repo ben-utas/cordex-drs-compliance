@@ -24,6 +24,16 @@ parser.add_argument(
     default=Path('.')
 )
 
+parser.add_argument(
+    '-m', '--gcm_model',
+    help='Model used for experiment.',
+    type=str,
+    choices=[
+        'CNRM-CERFACS-CNRM-CM5', 'CSIRO-BOM-ACCESS1-0', 'MIROC-MIROC5',
+        'MOHC-HadGEM2-CC', 'NCC-NorESM1-M', 'NOAA-GFDL-GFDL-ESM2M'
+    ]
+)
+
 destination = Path(parser.parse_args().destination)
 
 if not destination.exists() and not destination.is_dir():
@@ -116,7 +126,7 @@ def relocate(nc_file: Path):
     # Make sure all keys have been allocated.
     if len(unallocated) != 0:
         print("Not all CORDEX variables are present for " + nc_file.name)
-        fix_global_variables(nc_file)
+        fix_global_variables(nc_file, nc_headers)
         return
 
     # Build the new file name and path.
@@ -147,15 +157,20 @@ def relocate(nc_file: Path):
     shutil.copy(nc_file, new_home)
 
 
-def fix_global_variables(nc_file: Path):
-    nc_fix = nc_file.name + "_fixed.nc"
+def fix_global_variables(nc_file: Path, nc_headers: list):
+    nc_fix_hist = nc_file.name + "_fixedhist.nc"
+    nc_fix_exp = nc_file.name + "_fixedexp.nc"
+
+    gcm_model = Path(parser.parse_args().gcm_model)
 
     subprocess.run(
         "ncatted -O -h -a ,global,d,, " +
-        str(nc_file) + " " + str(path) + "/" + nc_fix, shell=True
+        str(nc_file) + " " + str(path) + "/" + nc_fix_hist, shell=True
     )
 
-    nc_fix = list(path.glob(nc_fix))[0]
+    nc_fix_hist = list(path.glob(nc_fix_hist))[0]
+    path.copyfile(nc_fix_hist, nc_fix_exp)
+    nc_fix_exp = list(path.glob(nc_fix_exp))[0]
 
     showname = subprocess.run(
         "cdo -s showname " + str(nc_file), stdout=subprocess.PIPE, shell=True
@@ -177,18 +192,25 @@ def fix_global_variables(nc_file: Path):
         start_date = dates[0].replace('-', '').strip()
         end_date = dates[-1].replace('-', '').strip()
 
+    source = nc_headers["source"].split("\"")[1]
+    d = nc_headers["creation_date"].split("\"")[1]
+
+    creation_date = '-'.join([d[:4], d[4:6], d[6:]]) + "T00:00:00UTC"
+
+    experiment_id = "historical"
+
     opt_fix = (
         "ncatted -O -h " +
         "-a institute_id,global,o,c,CSIRO " +
         "-a institution,global,o,c,'CSIRO Australia' " +
         "-a model_id,global,o,c,CSIRO-CCAM-r3355 " +
         "-a rcm_version_id,global,o,c,v1 " +
-        "-a experiment_id,global,o,c,rcp85 " +
-        "-a experiment,global,o,c,'Climate change run using CNRM-CERFACS-CNRM-CM5 rcp85 r1i1p1' " +
-        "-a driving_model_id,global,o,c,CNRM-CERFACS-CNRM-CM5 " +
+        "-a experiment_id,global,o,c," + experiment_id + " " +
+        "-a experiment,global,o,c,'Climate change run using " + gcm_model + " " + experiment_id + " r1i1p1' " +
+        "-a driving_model_id,global,o,c," + gcm_model + " " +
         "-a driving_model_ensemble_member,global,o,c,r1i1p1 " +
-        "-a driving_experiment,global,o,c,'CNRM-CERFACS-CNRM-CM5; rcp85; r1i1p1' " +
-        "-a driving_experiment_name,global,o,c,rcp85 " +
+        "-a driving_experiment,global,o,c,'" + gcm_model + "; " + experiment_id + "; r1i1p1' " +
+        "-a driving_experiment_name,global,o,c, + "experiment_id" + " +
         "-a domain,global,o,c,GLB-50i " +
         "-a comment,global,o,c,GLB-50i " +
         "-a frequency,global,o,c," + freq + " " +
@@ -196,25 +218,70 @@ def fix_global_variables(nc_file: Path):
         "-a project_id,global,o,c,CORDEX " +
         "-a contact,global,o,c,ccam@csiro.au " +
         "-a references,global,o,c,https://confluence.csiro.au/display/CCAM " +
-        "-a source,global,o,c,'CSIRO Conformal-Cubic Atmospheric Model (CCAM) version r3355. Input file: ccam_wine_cnrm-cm5_50km.202001 Processed by pcc2hist SVN-r3472' " +
         "-a il,global,o,c,192 " +
         "-a kl,global,o,c,35 " +
         "-a schmidt,global,o,c,1. " +
         "-a rlon,global,o,c,0. " +
         "-a rlat,global,o,c,0. " +
-        "-a creation_date,global,o,c,2018-08-16T19:13:22UTC " +
-        "-a produced_date,global,o,c,2017-07-31 "
+        "-a creation_date,global,o,c," + creation_date + " " +
+        "-a source,global,o,c," + source
     )
-    
-    subprocess.run(opt_fix + str(nc_fix), shell=True)
 
+    subprocess.run(opt_fix + str(nc_fix_hist), shell=True)
+
+    experiment_id = "rcp85"
+
+    opt_fix = (
+        "ncatted -O -h " +
+        "-a institute_id,global,o,c,CSIRO " +
+        "-a institution,global,o,c,'CSIRO Australia' " +
+        "-a model_id,global,o,c,CSIRO-CCAM-r3355 " +
+        "-a rcm_version_id,global,o,c,v1 " +
+        "-a experiment_id,global,o,c," + experiment_id + " " +
+        "-a experiment,global,o,c,'Climate change run using " + gcm_model + 
+        " " + experiment_id + " r1i1p1' " +
+        "-a driving_model_id,global,o,c," + gcm_model + " " +
+        "-a driving_model_ensemble_member,global,o,c,r1i1p1 " +
+        "-a driving_experiment,global,o,c,'" + gcm_model + "; " + 
+        experiment_id + "; r1i1p1' " +
+        "-a driving_experiment_name,global,o,c, + "experiment_id" + " +
+        "-a domain,global,o,c,GLB-50i " +
+        "-a comment,global,o,c,GLB-50i " +
+        "-a frequency,global,o,c," + freq + " " +
+        "-a product,global,o,c,output " +
+        "-a project_id,global,o,c,CORDEX " +
+        "-a contact,global,o,c,ccam@csiro.au " +
+        "-a references,global,o,c,https://confluence.csiro.au/display/CCAM " +
+        "-a il,global,o,c,192 " +
+        "-a kl,global,o,c,35 " +
+        "-a schmidt,global,o,c,1. " +
+        "-a rlon,global,o,c,0. " +
+        "-a rlat,global,o,c,0. " +
+        "-a creation_date,global,o,c," + creation_date + " " +
+        "-a source,global,o,c," + source
+    )
+
+    subprocess.run(opt_fix + str(nc_fix_exp), shell=True)
+
+    move_fixes(gcm_model, experiment_id, variable_name,
+               freq, start_date, end_date, nc_fix_hist)
+    move_fixes(gcm_model, experiment_id, variable_name,
+               freq, start_date, end_date, nc_fix_exp)
+
+    nc_fix_hist.unlink()
+    nc_fix_exp.unlink()
+
+    return
+
+
+def move_fixes(gcm_model, experiment_id, variable_name, freq, start_date, end_date, nc_fix):
     # Build the new file name and path.
     cordex_path = destination / "CORDEX" / "GLB-50i" / "CSIRO" / \
-        "CNRM-CERFACS-CNRM-CM5" / "rcp85" / "r1i1p1" / \
+        gcm_model / experiment_id / "r1i1p1" / \
         "CSIRO-CCAM-r3355" / "v1" / "fx" / variable_name
 
     cordex_name = "_".join([
-        variable_name, "GLB-50i", "CNRM-CERFACS-CNRM-CM5", "rcp85",
+        variable_name, "GLB-50i", gcm_model, experiment_id,
         "r1i1p1", "CSIRO-CCAM-r3355", "v1", freq
     ])
 
@@ -229,10 +296,6 @@ def fix_global_variables(nc_file: Path):
     if not Path.exists(cordex_path):
         Path.mkdir(cordex_path, parents=True)
     shutil.copy(nc_fix, new_home)
-
-    nc_fix.unlink()
-
-    return
 
 
 historical_dates = ["1950", "1960", "1970", "1980", "1990", "2000-2005"]
