@@ -210,7 +210,7 @@ def fix_global_variables(nc_file: Path, nc_headers: list):
         "-a driving_model_id,global,o,c," + gcm_model + " " +
         "-a driving_model_ensemble_member,global,o,c,r1i1p1 " +
         "-a driving_experiment,global,o,c,'" + gcm_model + "; " + experiment_id + "; r1i1p1' " +
-        "-a driving_experiment_name,global,o,c, + "experiment_id" + " +
+        "-a driving_experiment_name,global,o,c, " + experiment_id + " " +
         "-a domain,global,o,c,GLB-50i " +
         "-a comment,global,o,c,GLB-50i " +
         "-a frequency,global,o,c," + freq + " " +
@@ -244,7 +244,7 @@ def fix_global_variables(nc_file: Path, nc_headers: list):
         "-a driving_model_ensemble_member,global,o,c,r1i1p1 " +
         "-a driving_experiment,global,o,c,'" + gcm_model + "; " + 
         experiment_id + "; r1i1p1' " +
-        "-a driving_experiment_name,global,o,c, + "experiment_id" + " +
+        "-a driving_experiment_name,global,o,c, " + experiment_id + " " +
         "-a domain,global,o,c,GLB-50i " +
         "-a comment,global,o,c,GLB-50i " +
         "-a frequency,global,o,c," + freq + " " +
