@@ -169,7 +169,7 @@ def fix_global_variables(nc_file: Path, nc_headers: list):
     )
 
     nc_fix_hist = list(path.glob(nc_fix_hist))[0]
-    path.copyfile(nc_fix_hist, nc_fix_exp)
+    shutil.copy(nc_fix_hist, nc_fix_exp)
     nc_fix_exp = list(path.glob(nc_fix_exp))[0]
 
     showname = subprocess.run(
@@ -265,6 +265,7 @@ def fix_global_variables(nc_file: Path, nc_headers: list):
 
     move_fixes(gcm_model, experiment_id, variable_name,
                freq, start_date, end_date, nc_fix_hist)
+    experiment_id = "historical"
     move_fixes(gcm_model, experiment_id, variable_name,
                freq, start_date, end_date, nc_fix_exp)
 
