@@ -110,6 +110,9 @@ def relocate(nc_file: Path):
         "driving_model_ensemble_member", "model_id", "rcm_version_id",
         "frequency", "institute_id"
     ])
+    for_fix = dict.fromkeys([
+        "source", "date_header"
+    ])
 
     # Find the string in nc_headers that contains each variable.
     for s in nc_headers:
@@ -118,6 +121,9 @@ def relocate(nc_file: Path):
             if k in s:
                 key = k
                 break
+        for k in for_fix:
+            if k in s:
+                for_fix[k] = s.split("\"")[1]
         if key == "":
             continue
         unallocated.pop(key)
@@ -126,7 +132,7 @@ def relocate(nc_file: Path):
     # Make sure all keys have been allocated.
     if len(unallocated) != 0:
         print("Not all CORDEX variables are present for " + nc_file.name)
-        fix_global_variables(nc_file, nc_headers)
+        fix_global_variables(nc_file, for_fix)
         return
 
     # Build the new file name and path.
@@ -157,7 +163,7 @@ def relocate(nc_file: Path):
     shutil.copy(nc_file, new_home)
 
 
-def fix_global_variables(nc_file: Path, nc_headers: list):
+def fix_global_variables(nc_file: Path, for_fix: dict):
     nc_fix_hist = nc_file.name + "_fixedhist.nc"
     nc_fix_exp = nc_file.name + "_fixedexp.nc"
 
@@ -192,9 +198,9 @@ def fix_global_variables(nc_file: Path, nc_headers: list):
         start_date = dates[0].replace('-', '').strip()
         end_date = dates[-1].replace('-', '').strip()
 
-    source = nc_headers["source"].split("\"")[1]
+    source = for_fix["source"]
     try: 
-        d = nc_headers["creation_date"].split("\"")[1]
+        d = for_fix["creation_date"]
     except:
         d = "20170101"
 
