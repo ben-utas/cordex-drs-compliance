@@ -169,7 +169,7 @@ def fix_global_variables(nc_file: Path, nc_headers: list):
     )
 
     nc_fix_hist = list(path.glob(nc_fix_hist))[0]
-    shutil.copy(nc_fix_hist, nc_fix_exp)
+    shutil.copy(nc_fix_hist, str(path) + "/" + nc_fix_exp)
     nc_fix_exp = list(path.glob(nc_fix_exp))[0]
 
     showname = subprocess.run(
@@ -193,7 +193,10 @@ def fix_global_variables(nc_file: Path, nc_headers: list):
         end_date = dates[-1].replace('-', '').strip()
 
     source = nc_headers["source"].split("\"")[1]
-    d = nc_headers["creation_date"].split("\"")[1]
+    try: 
+        d = nc_headers["creation_date"].split("\"")[1]
+    except:
+        d = "20170101"
 
     creation_date = '-'.join([d[:4], d[4:6], d[6:]]) + "T00:00:00UTC"
 
