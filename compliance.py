@@ -167,7 +167,7 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
     nc_fix_hist = nc_file.name + "_fixedhist.nc"
     nc_fix_exp = nc_file.name + "_fixedexp.nc"
 
-    gcm_model = Path(parser.parse_args().gcm_model)
+    gcm_model = str(parser.parse_args().gcm_model)
 
     subprocess.run(
         "ncatted -O -h -a ,global,d,, " +
@@ -199,7 +199,7 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
         end_date = dates[-1].replace('-', '').strip()
 
     source = for_fix["source"]
-    try: 
+    try:
         d = for_fix["creation_date"]
     except:
         d = "20170101"
@@ -247,11 +247,11 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
         "-a model_id,global,o,c,CSIRO-CCAM-r3355 " +
         "-a rcm_version_id,global,o,c,v1 " +
         "-a experiment_id,global,o,c," + experiment_id + " " +
-        "-a experiment,global,o,c,'Climate change run using " + gcm_model + 
+        "-a experiment,global,o,c,'Climate change run using " + gcm_model +
         " " + experiment_id + " r1i1p1' " +
         "-a driving_model_id,global,o,c," + gcm_model + " " +
         "-a driving_model_ensemble_member,global,o,c,r1i1p1 " +
-        "-a driving_experiment,global,o,c,'" + gcm_model + "; " + 
+        "-a driving_experiment,global,o,c,'" + gcm_model + "; " +
         experiment_id + "; r1i1p1' " +
         "-a driving_experiment_name,global,o,c, " + experiment_id + " " +
         "-a domain,global,o,c,GLB-50i " +
