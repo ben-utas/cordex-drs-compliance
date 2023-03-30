@@ -226,8 +226,8 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
         "-a frequency,global,o,c," + freq + " " +
         "-a product,global,o,c,output " +
         "-a project_id,global,o,c,CORDEX " +
-        "-a contact,global,o,c,ccam@csiro.au " +
-        "-a references,global,o,c,https://confluence.csiro.au/display/CCAM " +
+        "-a contact,global,o,c,'ccam@csiro.au' " +
+        "-a references,global,o,c,'https://confluence.csiro.au/display/CCAM' " +
         "-a il,global,o,c,192 " +
         "-a kl,global,o,c,35 " +
         "-a schmidt,global,o,c,1. " +
@@ -260,8 +260,8 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
         "-a frequency,global,o,c," + freq + " " +
         "-a product,global,o,c,output " +
         "-a project_id,global,o,c,CORDEX " +
-        "-a contact,global,o,c,ccam@csiro.au " +
-        "-a references,global,o,c,https://confluence.csiro.au/display/CCAM " +
+        "-a contact,global,o,c,'ccam@csiro.au' " +
+        "-a references,global,o,c,'https://confluence.csiro.au/display/CCAM' " +
         "-a il,global,o,c,192 " +
         "-a kl,global,o,c,35 " +
         "-a schmidt,global,o,c,1. " +
@@ -274,10 +274,10 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
     subprocess.run(opt_fix + str(nc_fix_exp), shell=True)
 
     move_fixes(gcm_model, experiment_id, variable_name,
-               freq, start_date, end_date, nc_fix_hist)
+               freq, nc_fix_hist)
     experiment_id = "historical"
     move_fixes(gcm_model, experiment_id, variable_name,
-               freq, start_date, end_date, nc_fix_exp)
+               freq, nc_fix_exp)
 
     nc_fix_hist.unlink()
     nc_fix_exp.unlink()
@@ -285,7 +285,7 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
     return
 
 
-def move_fixes(gcm_model, experiment_id, variable_name, freq, start_date, end_date, nc_fix):
+def move_fixes(gcm_model, experiment_id, variable_name, freq, nc_fix):
     # Build the new file name and path.
     cordex_path = destination / "CORDEX" / "GLB-50i" / "CSIRO" / \
         gcm_model / experiment_id / "r1i1p1" / \
@@ -295,11 +295,6 @@ def move_fixes(gcm_model, experiment_id, variable_name, freq, start_date, end_da
         variable_name, "GLB-50i", gcm_model, experiment_id,
         "r1i1p1", "CSIRO-CCAM-r3355", "v1", freq
     ])
-
-    if variable_name not in invariant_variables:
-        cordex_name = \
-            cordex_name + "_" \
-            + "-".join([start_date, end_date])
 
     cordex_name = cordex_name + ".nc"
 
