@@ -304,16 +304,6 @@ def move_fixes(gcm_model, experiment_id, variable_name, freq, nc_fix):
         "r1i1p1", "CSIRO-CCAM-r3355", "v1", freq
     ])
     
-    subprocess.run(
-        "ncatted -O -h -a experiment,global,o,c,'Climate change run using " + 
-        gcm_model + " " + 
-        experiment_id + " r1i1p1" + 
-        "' -a driving_experiment,global,o,c,'" + 
-        gcm_model + ", " + 
-        experiment_id + ", r1i1p1' " + str(nc_file), 
-        shell=True
-    )
-
     cordex_name = cordex_name + ".nc"
 
     new_home = Path.joinpath(cordex_path, cordex_name)
