@@ -28,6 +28,7 @@ parser.add_argument(
     '-m', '--gcm_model',
     help='Model used for experiment.',
     type=str,
+    required=True,
     choices=[
         'CNRM-CERFACS-CNRM-CM5', 'CSIRO-BOM-ACCESS1-0', 'MIROC-MIROC5',
         'MOHC-HadGEM2-CC', 'NCC-NorESM1-M', 'NOAA-GFDL-GFDL-ESM2M'
@@ -167,7 +168,7 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
     nc_fix_hist = nc_file.name + "_fixedhist.nc"
     nc_fix_exp = nc_file.name + "_fixedexp.nc"
 
-    gcm_model = str(parser.parse_args().gcm_model)
+    gcm_model = parser.parse_args().gcm_model
 
     subprocess.run(
         "ncatted -O -h -a ,global,d,, " +
@@ -233,7 +234,7 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
         "-a rlon,global,o,c,0. " +
         "-a rlat,global,o,c,0. " +
         "-a creation_date,global,o,c," + creation_date + " " +
-        "-a source,global,o,c," + source
+        "-a source,global,o,c," + str(source)
     )
 
     subprocess.run(opt_fix + str(nc_fix_hist), shell=True)
