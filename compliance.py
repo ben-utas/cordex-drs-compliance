@@ -54,8 +54,6 @@ nc_files = list(path.glob('**/*.nc'))
 opt_historical = (
     "ncatted -O -h " +
     "-a experiment_id,global,o,c,historical " +
-    "-a experiment,global,o,c,historical " +
-    "-a driving_experiment,global,o,c,historical " +
     "-a driving_experiment_name,global,o,c,historical " +
     "-a domain,global,o,c,GLB-50i " +
     "-a comment,global,o,c,GLB-50i " +
@@ -150,6 +148,16 @@ def relocate(nc_file: Path):
         allocated["driving_model_ensemble_member"], allocated["model_id"],
         allocated["rcm_version_id"], allocated["frequency"]
     ])
+
+    subprocess.run(
+        "ncatted -O -h -a experiment,global,o,c,'Climate change run using " + 
+        allocated["driving_model_id"] + ", " + 
+        allocated["driving_experiment_name"] + ", r1i1p1" + 
+        "' -a driving_experiment,global,o,c,'" + 
+        allocated["driving_model_id"] + ", " + 
+        allocated["driving_experiment_name"] + ", r1i1p1" + str(nc_file), 
+        shell=True
+    )
 
     if allocated["variable_name"] not in invariant_variables:
         cordex_name = \
@@ -295,6 +303,16 @@ def move_fixes(gcm_model, experiment_id, variable_name, freq, nc_fix):
         variable_name, "GLB-50i", gcm_model, experiment_id,
         "r1i1p1", "CSIRO-CCAM-r3355", "v1", freq
     ])
+    
+    subprocess.run(
+        "ncatted -O -h -a experiment,global,o,c,'Climate change run using " + 
+        gcm_model + ", " + 
+        experiment_id + ", r1i1p1" + 
+        "' -a driving_experiment,global,o,c,'" + 
+        gcm_model + ", " + 
+        experiment_id + ", r1i1p1" + str(nc_file), 
+        shell=True
+    )
 
     cordex_name = cordex_name + ".nc"
 
