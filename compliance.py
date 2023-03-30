@@ -234,7 +234,7 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
         "-a rlon,global,o,c,0. " +
         "-a rlat,global,o,c,0. " +
         "-a creation_date,global,o,c," + creation_date + " " +
-        "-a source,global,o,c," + str(source)
+        "-a source,global,o,c,'" + str(source) + "'"
     )
 
     subprocess.run(opt_fix + str(nc_fix_hist), shell=True)
@@ -268,7 +268,7 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
         "-a rlon,global,o,c,0. " +
         "-a rlat,global,o,c,0. " +
         "-a creation_date,global,o,c," + creation_date + " " +
-        "-a source,global,o,c,'" + source + "'"
+        "-a source,global,o,c,'" + str(source) + "'"
     )
 
     subprocess.run(opt_fix + str(nc_fix_exp), shell=True)
