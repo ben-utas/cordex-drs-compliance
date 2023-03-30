@@ -155,7 +155,7 @@ def relocate(nc_file: Path):
         allocated["driving_experiment_name"] + ", r1i1p1" + 
         "' -a driving_experiment,global,o,c,'" + 
         allocated["driving_model_id"] + ", " + 
-        allocated["driving_experiment_name"] + ", r1i1p1" + str(nc_file), 
+        allocated["driving_experiment_name"] + ", r1i1p1' " + str(nc_file), 
         shell=True
     )
 
@@ -310,7 +310,7 @@ def move_fixes(gcm_model, experiment_id, variable_name, freq, nc_fix):
         experiment_id + ", r1i1p1" + 
         "' -a driving_experiment,global,o,c,'" + 
         gcm_model + ", " + 
-        experiment_id + ", r1i1p1" + str(nc_file), 
+        experiment_id + ", r1i1p1' " + str(nc_file), 
         shell=True
     )
 
