@@ -254,7 +254,7 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
         "-a driving_model_ensemble_member,global,o,c,r1i1p1 " +
         "-a driving_experiment,global,o,c,'" + gcm_model + "; " +
         experiment_id + "; r1i1p1' " +
-        "-a driving_experiment_name,global,o,c, " + experiment_id + " " +
+        "-a driving_experiment_name,global,o,c," + experiment_id + " " +
         "-a domain,global,o,c,GLB-50i " +
         "-a comment,global,o,c,GLB-50i " +
         "-a frequency,global,o,c," + freq + " " +
