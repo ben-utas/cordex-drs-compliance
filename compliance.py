@@ -165,8 +165,8 @@ def relocate(nc_file: Path):
 
 
 def fix_global_variables(nc_file: Path, for_fix: dict):
-    nc_fix_hist = nc_file.name + "_fixedhist.nc"
-    nc_fix_exp = nc_file.name + "_fixedexp.nc"
+    nc_fix_hist = nc_file.name.split(".")[0] + "_fixedhist.nc"
+    nc_fix_exp = nc_file.name.split(".")[0] + "_fixedexp.nc"
 
     gcm_model = parser.parse_args().gcm_model
 
@@ -220,7 +220,7 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
         "-a driving_model_id,global,o,c," + gcm_model + " " +
         "-a driving_model_ensemble_member,global,o,c,r1i1p1 " +
         "-a driving_experiment,global,o,c,'" + gcm_model + "; " + experiment_id + "; r1i1p1' " +
-        "-a driving_experiment_name,global,o,c, " + experiment_id + " " +
+        "-a driving_experiment_name,global,o,c," + experiment_id + " " +
         "-a domain,global,o,c,GLB-50i " +
         "-a comment,global,o,c,GLB-50i " +
         "-a frequency,global,o,c," + freq + " " +
