@@ -151,8 +151,8 @@ def relocate(nc_file: Path):
 
     subprocess.run(
         "ncatted -O -h -a experiment,global,o,c,'Climate change run using " + 
-        allocated["driving_model_id"] + ", " + 
-        allocated["driving_experiment_name"] + ", r1i1p1" + 
+        allocated["driving_model_id"] + " " + 
+        allocated["driving_experiment_name"] + " r1i1p1" + 
         "' -a driving_experiment,global,o,c,'" + 
         allocated["driving_model_id"] + ", " + 
         allocated["driving_experiment_name"] + ", r1i1p1' " + str(nc_file), 
@@ -282,10 +282,10 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
     subprocess.run(opt_fix + str(nc_fix_exp), shell=True)
 
     move_fixes(gcm_model, experiment_id, variable_name,
-               freq, nc_fix_hist)
+               freq, nc_fix_exp)
     experiment_id = "historical"
     move_fixes(gcm_model, experiment_id, variable_name,
-               freq, nc_fix_exp)
+               freq, nc_fix_hist)
 
     nc_fix_hist.unlink()
     nc_fix_exp.unlink()
@@ -306,8 +306,8 @@ def move_fixes(gcm_model, experiment_id, variable_name, freq, nc_fix):
     
     subprocess.run(
         "ncatted -O -h -a experiment,global,o,c,'Climate change run using " + 
-        gcm_model + ", " + 
-        experiment_id + ", r1i1p1" + 
+        gcm_model + " " + 
+        experiment_id + " r1i1p1" + 
         "' -a driving_experiment,global,o,c,'" + 
         gcm_model + ", " + 
         experiment_id + ", r1i1p1' " + str(nc_file), 
