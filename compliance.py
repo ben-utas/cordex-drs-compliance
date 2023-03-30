@@ -227,7 +227,7 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
         "-a experiment,global,o,c,'Climate change run using " + gcm_model + " " + experiment_id + " r1i1p1' " +
         "-a driving_model_id,global,o,c," + gcm_model + " " +
         "-a driving_model_ensemble_member,global,o,c,r1i1p1 " +
-        "-a driving_experiment,global,o,c,'" + gcm_model + "; " + experiment_id + "; r1i1p1' " +
+        "-a driving_experiment,global,o,c,'" + gcm_model + ", " + experiment_id + ", r1i1p1' " +
         "-a driving_experiment_name,global,o,c," + experiment_id + " " +
         "-a domain,global,o,c,GLB-50i " +
         "-a comment,global,o,c,GLB-50i " +
@@ -260,8 +260,8 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
         " " + experiment_id + " r1i1p1' " +
         "-a driving_model_id,global,o,c," + gcm_model + " " +
         "-a driving_model_ensemble_member,global,o,c,r1i1p1 " +
-        "-a driving_experiment,global,o,c,'" + gcm_model + "; " +
-        experiment_id + "; r1i1p1' " +
+        "-a driving_experiment,global,o,c,'" + gcm_model + ", " +
+        experiment_id + ", r1i1p1' " +
         "-a driving_experiment_name,global,o,c," + experiment_id + " " +
         "-a domain,global,o,c,GLB-50i " +
         "-a comment,global,o,c,GLB-50i " +
