@@ -147,7 +147,7 @@ def relocate(nc_file: Path, opt: str):
         allocated["frequency"] = "day"
         
     # Build the new file name and path.
-    cordex_path = destination / allocated["project_id"] / \
+    cordex_path = destination / "WINE" / "output" / \
         allocated["domain"] / allocated["institute_id"] / \
         allocated["driving_model_id"] / allocated["driving_experiment_name"] / \
         allocated["driving_model_ensemble_member"] / allocated["model_id"] / \
@@ -312,7 +312,7 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
 
 def move_fixes(gcm_model, experiment_id, variable_name, freq, nc_fix):
     # Build the new file name and path.
-    cordex_path = destination / "CORDEX" / "GLB-50i" / "CSIRO" / \
+    cordex_path = destination / "WINE" / "output" / "GLB-50i" / "CSIRO" / \
         gcm_model / experiment_id / "r1i1p1" / \
         "CSIRO-CCAM-r3355" / "v1" / "fx" / variable_name
 
