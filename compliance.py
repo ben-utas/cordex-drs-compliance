@@ -363,16 +363,16 @@ for nc_file in nc_files:
         else:
             subprocess.run(opt_historical + str(nc_historical), shell=True)
             subprocess.run(opt_experimental + str(nc_experiment), shell=True)
-            relocate(nc_historical)
-            relocate(nc_experiment)
+            relocate(nc_historical, "historical")
+            relocate(nc_experiment, "experimental")
             nc_historical.unlink()
             nc_experiment.unlink()
     # Fix metadata for remaining files.
     elif any(date in nc_file.name for date in historical_dates):
         subprocess.run(opt_historical + str(nc_file), shell=True)
-        relocate(nc_file, opt_historical)
+        relocate(nc_file, "historical")
     elif any(date in nc_file.name for date in experimental_dates):
         subprocess.run(opt_experimental + str(nc_file), shell=True)
-        relocate(nc_file, opt_experimental)
+        relocate(nc_file, "experimental")
     else:
-        relocate(nc_file)
+        relocate(nc_file, "none")
