@@ -195,14 +195,19 @@ def fix_global_variables(nc_file: Path, for_fix: dict):
 
     gcm_model = parser.parse_args().gcm_model
 
+    shutil.copy(nc_file, str(destination) + "/" + nc_fix_hist)
+    nc_fix_hist = list(destination.glob(nc_fix_hist))[0]
+    shutil.copy(nc_fix_hist, str(destination) + "/" + nc_fix_exp)
+    nc_fix_exp = list(destination.glob(nc_fix_exp))[0]
+
     subprocess.run(
         "ncatted -O -h -a ,global,d,, " +
-        str(nc_file) + " " + str(path) + "/" + nc_fix_hist, shell=True
+        str(nc_file) + " " + str(nc_fix_hist), shell=True
     )
-
-    nc_fix_hist = list(path.glob(nc_fix_hist))[0]
-    shutil.copy(nc_fix_hist, str(path) + "/" + nc_fix_exp)
-    nc_fix_exp = list(path.glob(nc_fix_exp))[0]
+    subprocess.run(
+        "ncatted -O -h -a ,global,d,, " +
+        str(nc_file) + " " + str(nc_fix_exp), shell=True
+    )
 
     showname = subprocess.run(
         "cdo -s showname " + str(nc_file), stdout=subprocess.PIPE, shell=True
