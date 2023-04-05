@@ -69,11 +69,12 @@ opt_experimental = (
 )
 
 
-def relocate(nc_file: Path):
+def relocate(nc_file: Path, opt: str):
     """Rename and relocate files according to DRS standard.
 
     Args:
         nc_file (Path): Path to NetCDF file to be renamed and relocated.
+        opt (str): Command to be run to modify file.
     """
     nc_headers = subprocess.run(
         "ncdump -h " + str(nc_file),
@@ -133,7 +134,18 @@ def relocate(nc_file: Path):
         print("Not all CORDEX variables are present for " + nc_file.name)
         fix_global_variables(nc_file, for_fix)
         return
-
+    
+    if opt == "historical":
+        allocated["experiment_id"] = "historical"
+        allocated["driving_experiment_name"] = "historical"
+        allocated["domain"] = "GLB-50i"
+        allocated["comment"] = "GLB-50i"
+        allocated["frequency"] = "day"
+    elif opt == "experimental":
+        allocated["domain"] = "GLB-50i"
+        allocated["comment"] = "GLB-50i"
+        allocated["frequency"] = "day"
+        
     # Build the new file name and path.
     cordex_path = destination / allocated["project_id"] / \
         allocated["domain"] / allocated["institute_id"] / \
@@ -149,16 +161,6 @@ def relocate(nc_file: Path):
         allocated["rcm_version_id"], allocated["frequency"]
     ])
 
-    subprocess.run(
-        "ncatted -O -h -a experiment,global,o,c,'Climate change run using " + 
-        allocated["driving_model_id"] + " " + 
-        allocated["driving_experiment_name"] + " r1i1p1" + 
-        "' -a driving_experiment,global,o,c,'" + 
-        allocated["driving_model_id"] + ", " + 
-        allocated["driving_experiment_name"] + ", r1i1p1' " + str(nc_file), 
-        shell=True
-    )
-
     if allocated["variable_name"] not in invariant_variables:
         cordex_name = \
             cordex_name + "_" \
@@ -170,6 +172,21 @@ def relocate(nc_file: Path):
     if not Path.exists(cordex_path):
         Path.mkdir(cordex_path, parents=True)
     shutil.copy(nc_file, new_home)
+    
+    if opt == "historical":
+        subprocess.run(opt_historical + str(new_home), shell=True)
+    if opt == "experimental":
+        subprocess.run(opt_experimental + str(new_home), shell=True)
+
+    subprocess.run(
+        "ncatted -O -h -a experiment,global,o,c,'Climate change run using " +
+        allocated["driving_model_id"] + " " +
+        allocated["driving_experiment_name"] + " r1i1p1" +
+        "' -a driving_experiment,global,o,c,'" +
+        allocated["driving_model_id"] + ", " +
+        allocated["driving_experiment_name"] + ", r1i1p1' " + str(new_home),
+        shell=True
+    )
 
 
 def fix_global_variables(nc_file: Path, for_fix: dict):
@@ -303,7 +320,7 @@ def move_fixes(gcm_model, experiment_id, variable_name, freq, nc_fix):
         variable_name, "GLB-50i", gcm_model, experiment_id,
         "r1i1p1", "CSIRO-CCAM-r3355", "v1", freq
     ])
-    
+
     cordex_name = cordex_name + ".nc"
 
     new_home = Path.joinpath(cordex_path, cordex_name)
@@ -325,11 +342,11 @@ for nc_file in nc_files:
         nc_historical = nc_file.name.split(".")[0] + ".2000-2005.nc"
         nc_experiment = nc_file.name.split(".")[0] + ".2006-2009.nc"
         subprocess.run(
-            "cdo -s selyear,2000/2005 "
+            "cdo -sL selyear,2000/2005 "
             + str(nc_file) + " " + str(path) + "/" + nc_historical, shell=True
         )
         subprocess.run(
-            "cdo -s selyear,2006/2009 "
+            "cdo -sL selyear,2006/2009 "
             + str(nc_file) + " " + str(path) + "/" + nc_experiment, shell=True
         )
         try:
@@ -348,9 +365,9 @@ for nc_file in nc_files:
     # Fix metadata for remaining files.
     elif any(date in nc_file.name for date in historical_dates):
         subprocess.run(opt_historical + str(nc_file), shell=True)
-        relocate(nc_file)
+        relocate(nc_file, opt_historical)
     elif any(date in nc_file.name for date in experimental_dates):
         subprocess.run(opt_experimental + str(nc_file), shell=True)
-        relocate(nc_file)
+        relocate(nc_file, opt_experimental)
     else:
         relocate(nc_file)
