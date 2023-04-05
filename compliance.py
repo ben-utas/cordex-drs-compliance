@@ -347,11 +347,11 @@ for nc_file in nc_files:
         nc_historical = nc_file.name.split(".")[0] + ".2000-2005.nc"
         nc_experiment = nc_file.name.split(".")[0] + ".2006-2009.nc"
         subprocess.run(
-            "cdo -sL selyear,2000/2005 "
+            "cdo -s -L selyear,2000/2005 "
             + str(nc_file) + " " + str(path) + "/" + nc_historical, shell=True
         )
         subprocess.run(
-            "cdo -sL selyear,2006/2009 "
+            "cdo -s -L selyear,2006/2009 "
             + str(nc_file) + " " + str(path) + "/" + nc_experiment, shell=True
         )
         try:
