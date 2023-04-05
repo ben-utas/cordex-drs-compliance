@@ -348,31 +348,27 @@ for nc_file in nc_files:
         nc_experiment = nc_file.name.split(".")[0] + ".2006-2009.nc"
         subprocess.run(
             "cdo -s -L selyear,2000/2005 "
-            + str(nc_file) + " " + str(path) + "/" + nc_historical, shell=True
+            + str(nc_file) + " " + str(destination) + "/" + nc_historical, shell=True
         )
         subprocess.run(
             "cdo -s -L selyear,2006/2009 "
-            + str(nc_file) + " " + str(path) + "/" + nc_experiment, shell=True
+            + str(nc_file) + " " + str(destination) + "/" + nc_experiment, shell=True
         )
         try:
-            nc_historical = list(path.glob(nc_historical))[0]
-            nc_experiment = list(path.glob(nc_experiment))[0]
+            nc_historical = list(destination.glob(nc_historical))[0]
+            nc_experiment = list(destination.glob(nc_experiment))[0]
         except:
             print(nc_file.name +
                   " failed to split into experimental and historical files.")
         else:
-            subprocess.run(opt_historical + str(nc_historical), shell=True)
-            subprocess.run(opt_experimental + str(nc_experiment), shell=True)
             relocate(nc_historical, "historical")
             relocate(nc_experiment, "experimental")
             nc_historical.unlink()
             nc_experiment.unlink()
     # Fix metadata for remaining files.
     elif any(date in nc_file.name for date in historical_dates):
-        subprocess.run(opt_historical + str(nc_file), shell=True)
         relocate(nc_file, "historical")
     elif any(date in nc_file.name for date in experimental_dates):
-        subprocess.run(opt_experimental + str(nc_file), shell=True)
         relocate(nc_file, "experimental")
     else:
         relocate(nc_file, "none")
